@@ -1,4 +1,4 @@
-<?php
+<?php 
 
 namespace App\Models;
 
@@ -12,3 +12,4 @@ class Floor extends Model
         return $this->hasMany(Resident::class);
     }
 }
+//piso que agrupa a varios residentes.

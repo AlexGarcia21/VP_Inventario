@@ -9,13 +9,15 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up(): void
-    {
-        Schema::create('residents', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
-        });
-    }
+   public function up()
+{
+    Schema::create('residents', function (Blueprint $table) {
+        $table->id();
+        $table->foreignId('floor_id')->constrained('floors')->onDelete('cascade');
+        $table->string('name');
+        $table->timestamps();
+    });
+}
 
     /**
      * Reverse the migrations.
@@ -25,3 +27,4 @@ return new class extends Migration
         Schema::dropIfExists('residents');
     }
 };
+//Conectada al piso mediante floor_id para poder filtrarlos fácilmente.
