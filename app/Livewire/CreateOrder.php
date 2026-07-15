@@ -37,7 +37,7 @@ class CreateOrder extends Component
             $this->residents = [];
         }
         // Limpiamos el residente seleccionado por si cambian de piso a la mitad del proceso
-        $this->selectedResident = null;
+        $this->selectedResident = null  ;
     }
 
     public function render()

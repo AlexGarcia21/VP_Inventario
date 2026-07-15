@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Floor extends Model
 {
+    
+    // ¡Esta es la línea mágica que faltaba!
+    protected $fillable = ['name'];
     // Un piso tiene muchos residentes
     public function residents()
     {
