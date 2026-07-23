@@ -6,9 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Order extends Model
 {
+    protected $fillable = ['resident_id', 'user_id', 'status'];
     // Una solicitud pertenece a un residente
     public function resident()
     {
+        
         return $this->belongsTo(Resident::class);
     }
 

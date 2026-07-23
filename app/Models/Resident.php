@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 
 class Resident extends Model
 {
+
+    protected $fillable = ['name', 'floor_id'];
+    
     // Un residente pertenece a un piso
     public function floor()
     {
