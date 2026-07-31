@@ -41,8 +41,8 @@
                                 {{ $order->items->count() }} insumos
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                <button class="bg-vp-morado hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors">
-                                    Revisar y Surtir
+                                <button onclick="Livewire.dispatch('openModal', { orderId: {{ $order->id }} })" class="bg-vp-morado hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors">
+                                 Revisar y Surtir
                                 </button>
                             </td>
                         </tr>
@@ -57,6 +57,6 @@
             </table>
         </div>
     </div>
-
+ @livewire('order-detail-modal')
 </body>
 </html>
