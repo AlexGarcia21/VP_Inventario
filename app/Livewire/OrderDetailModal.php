@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Order;
 use Livewire\Attributes\On; // escuchar eventos en Livewire 
+use Illuminate\Support\Facades\DB; 
 
 class OrderDetailModal extends Component
 {
@@ -26,6 +27,47 @@ class OrderDetailModal extends Component
     {
         $this->isOpen = false;
         $this->order = null; // Limpiamos los datos por seguridad
+    }
+
+    public function approveOrder()
+    {   
+        try {
+            DB::transaction(function () {
+                // Se Verifica  que la orden no haya sido aprobada previamente
+                if ($this->order->status !== 'pending') {
+                    throw new \Exception('Esta orden ya fue procesada.');
+                }
+
+                // Recorremos los insumos para restar el stock físicamente
+                foreach ($this->order->items as $item) {
+                    $product = $item->product;
+
+                    // Validamos que exista suficiente inventario
+                    if ($product->current_stock < $item->requested_quantity) {
+                        throw new \Exception("Stock insuficiente para: {$product->name}");
+                    }
+
+                    // Restamos y guardamos el nuevo stock del producto
+                    $product->current_stock -= $item->requested_quantity;
+                    $product->save();
+                }
+
+                //Marcamos la orden completa como 'aprobada'
+                $this->order->status = 'approved';
+                $this->order->save();
+            });
+
+            // Si todo salió bien, cerramos el modal
+            $this->closeModal();
+            
+            // Le avisamos a la tabla principal que recargue sus datos
+            $this->dispatch('orderApproved');
+
+        } catch (\Exception $e) {
+            // Manejo de errores (Se puede conectar luego con una alerta visual)
+            session()->flash('error', $e->getMessage());
+           
+        }
     }
 
     public function render()

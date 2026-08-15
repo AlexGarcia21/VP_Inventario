@@ -58,5 +58,20 @@
         </div>
     </div>
  @livewire('order-detail-modal')
+ <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+<script>
+    document.addEventListener('livewire:init', () => {
+        Livewire.on('orderApproved', () => {
+            Swal.fire({
+                title: '¡Orden Autorizada!',
+                text: 'La salida se registró y el stock ha sido descontado correctamente.',
+                icon: 'success',
+                confirmButtonColor: '#10B981', // Verde Tailwind
+                confirmButtonText: 'Aceptar'
+            });
+        });
+    });
+</script>
 </body>
 </html>
