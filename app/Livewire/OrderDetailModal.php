@@ -74,6 +74,27 @@ class OrderDetailModal extends Component
     {
         return view('livewire.order-detail-modal');
     }
+
+    public function rejectOrder()
+    {
+        try {
+            // 1. Verificamos que la orden no haya sido procesada antes
+            if ($this->order->status !== 'pending') {
+                throw new \Exception('Esta orden ya fue procesada.');
+            }
+
+            // 2. Cambiamos el estado a rechazado sin alterar el stock
+            $this->order->status = 'rejected';
+            $this->order->save();
+
+            // 3. Cerramos modal y disparamos evento
+            $this->closeModal();
+            $this->dispatch('orderRejected');
+
+        } catch (\Throwable $e) {
+            session()->flash('error', $e->getMessage());
+        }
+    }
 }
 //este modal es para mostrar los detalles de la orden y permitir al usuario marcarla como surtida. Se abre cuando el usuario hace click en "Revisar y Surtir" en la tabla de órdenes pendientes.
 //en si, una ventana emergente muestra la info o pedir datos sin tener que recargar la página. Esto mejora la experiencia del usuario y hace que la aplicación sea más interactiva.

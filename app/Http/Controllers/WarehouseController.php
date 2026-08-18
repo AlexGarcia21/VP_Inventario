@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Order;
-
+use App\Models\Product;
 class WarehouseController extends Controller
 {
     public function index()
@@ -16,6 +16,10 @@ class WarehouseController extends Controller
                               ->orderBy('created_at', 'asc') // Las más antiguas primero (Primeras entradas, primeras salidas)
                               ->get();
 
-        return view('warehouse.index', compact('pendingOrders'));
+        // alerta (Stock actual menor o igual al mínimo)
+        $lowStockProducts = Product::whereColumn('current_stock', '<=', 'min_stock')
+            ->get();
+
+        return view('warehouse.index', compact('pendingOrders', 'lowStockProducts'));
     }
 }

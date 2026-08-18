@@ -48,13 +48,22 @@
 
                 {{-- Pie del modal con acciones --}}
                 <div class="bg-gray-50 p-4 border-t flex justify-end space-x-3">
-                    <button wire:click="closeModal" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition-colors">
-                        Cerrar
-                    </button>
-                    <button wire:click.prevent="approveOrder" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm">
-                        Autorizar Salida ✔
-                    </button>
+    <button wire:click="closeModal" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition-colors">
+        Cerrar
+    </button>
+    
+    {{-- Botón de Rechazo --}}
+    <button wire:click.prevent="rejectOrder" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-sm">
+        Rechazar Pedido ✖
+    </button>
+
+    {{-- Botón de Autorización --}}
+    <button wire:click.prevent="approveOrder" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm">
+        Autorizar Salida ✔
+    </button>
                 </div>
+
+                
             </div>
         </div>
     @endif
