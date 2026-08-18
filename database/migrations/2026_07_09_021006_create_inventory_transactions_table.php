@@ -9,14 +9,15 @@ return new class extends Migration
     /**
      * Run the migrations.
      */
-    public function up()
+    public function up(): void
 {
     Schema::create('inventory_transactions', function (Blueprint $table) {
         $table->id();
-        $table->foreignId('product_id')->constrained('products');
-        $table->foreignId('user_id')->constrained('users'); // Quién registró el movimiento
-        $table->enum('type', ['in', 'out']); // 'in' = entrada proveedor, 'out' = consumo
+        $table->foreignId('product_id')->constrained('products')->cascadeOnDelete();
+        $table->foreignId('user_id')->constrained('users')->cascadeOnDelete();
+        $table->enum('type', ['entry', 'exit']);
         $table->integer('quantity');
+        $table->string('notes')->nullable();
         $table->timestamps();
     });
 }

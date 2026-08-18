@@ -14,3 +14,7 @@ Route::get('/almacen', [WarehouseController::class, 'index'])->name('warehouse.i
 Route::post('/almacen/ordenes/{id}/autorizar', [OrderController::class, 'approveOrder'])->name('orders.approve');
 // Ruta del Dashboard principal
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// Ruta para la vista de entradas de inventario
+Route::get('/almacen/entradas', function () {
+    return view('warehouse.entries');
+});

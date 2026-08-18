@@ -9,7 +9,12 @@
 <body class="bg-vp-beige min-h-screen p-8">
     
     <div class="max-w-7xl mx-auto">
-        <h1 class="text-3xl font-bold text-vp-oscuro mb-8">Panel de Almacén - Órdenes Pendientes</h1>
+        <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-bold text-vp-oscuro">Panel de Almacén - Órdenes Pendientes</h1>
+    <a href="/almacen/entradas" class="bg-vp-morado hover:bg-vp-oscuro text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-colors shadow-sm">
+        + Registrar Entrada de Proveedor
+    </a>
+        </div>
 
 {{-- SECCIÓN: Alertas de Stock Mínimo --}}
 @if($lowStockProducts->isNotEmpty())
