@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Product extends Model
 {
+    protected $fillable = [
+        'name',
+        'current_stock',
+        'min_stock',
+    ];
     // Un insumo puede estar en muchos detalles de pedidos
     public function orderItems()
     {

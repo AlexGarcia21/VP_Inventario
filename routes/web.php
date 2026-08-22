@@ -16,5 +16,7 @@ Route::post('/almacen/ordenes/{id}/autorizar', [OrderController::class, 'approve
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 // Ruta para la vista de entradas de inventario
 Route::get('/almacen/entradas', function () {
-    return view('warehouse.entries');
-});
+    return view('warehouse.entries');});
+//Ruta para la vista del crud de insumos
+Route::get('/admin/productos', function () {
+    return view('admin.products');});
