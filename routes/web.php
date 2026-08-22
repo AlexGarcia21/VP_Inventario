@@ -20,3 +20,6 @@ Route::get('/almacen/entradas', function () {
 //Ruta para la vista del crud de insumos
 Route::get('/admin/productos', function () {
     return view('admin.products');});
+//Ruta para la vista del crud de residentes
+    Route::get('/admin/residentes', function () {
+    return view('admin.residents');});
