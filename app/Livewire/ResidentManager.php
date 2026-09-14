@@ -72,8 +72,14 @@ class ResidentManager extends Component
 
     public function delete($id)
     {
-        Resident::findOrFail($id)->delete();
-        session()->flash('message', 'Residente eliminado del sistema.');
+        try {
+            Resident::findOrFail($id)->delete();
+            session()->flash('message', 'Residente eliminado del sistema.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Ocurre cuando el residente ya tiene órdenes registradas y la base
+            // de datos rechaza el borrado por la restricción de llave foránea.
+            session()->flash('error', 'No se puede eliminar este residente porque ya tiene órdenes registradas.');
+        }
     }
 
     public function render()

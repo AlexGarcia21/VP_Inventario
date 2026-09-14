@@ -11,6 +11,17 @@
         </div>
     @endif
 
+    @if (session()->has('error'))
+        <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 5000)"
+             class="flex items-center justify-between p-4 bg-red-50 border-l-4 border-red-500 text-red-800 rounded-xl shadow-sm text-sm font-semibold">
+            <div class="flex items-center gap-2">
+                <span>⚠️</span>
+                <span>{{ session('error') }}</span>
+            </div>
+            <button @click="show = false" class="text-red-800 font-bold hover:text-red-950">&times;</button>
+        </div>
+    @endif
+
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
         {{-- Formulario: Crear / Editar --}}
         <div class="lg:col-span-4">

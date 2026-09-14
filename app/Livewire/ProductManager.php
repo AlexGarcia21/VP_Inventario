@@ -5,6 +5,7 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Product;
 use Livewire\WithPagination;
+use Illuminate\Validation\Rule;
 
 class ProductManager extends Component
 {
@@ -23,7 +24,16 @@ class ProductManager extends Component
     protected function rules()
     {
         return [
-            'name'          => 'required|string|max:255|unique:products,name,' . $this->product_id,
+            /* Rule::unique()->ignore() maneja bien tanto la creación (product_id es
+            null, así que no ignora nada) como la edición (ignora el propio
+            registro). La versión anterior concatenaba el ID directo en el string
+            de reglas ("unique:products,name," . $this->product_id), lo que además
+            dejaba la regla mal formada en modo creación, porque quedaba como
+            "unique:products,name," sin ningún ID al final. */
+            'name'          => [
+                'required', 'string', 'max:255',
+                Rule::unique('products', 'name')->ignore($this->product_id),
+            ],
             'current_stock' => 'required|integer|min:0',
             'min_stock'     => 'required|integer|min:1',
         ];
@@ -83,8 +93,15 @@ class ProductManager extends Component
 
     public function delete($id)
     {
-        Product::findOrFail($id)->delete();
-        session()->flash('message', 'Insumo eliminado del catálogo.');
+        try {
+            Product::findOrFail($id)->delete();
+            session()->flash('message', 'Insumo eliminado del catálogo.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            // Ocurre cuando el producto ya tiene historial (order_items o
+            // inventory_transactions) y la base de datos rechaza el borrado
+            // por la restricción de llave foránea (RESTRICT por defecto).
+            session()->flash('error', 'No se puede eliminar este insumo porque ya tiene movimientos u órdenes registradas.');
+        }
     }
 
     public function render()
