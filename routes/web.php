@@ -10,16 +10,22 @@ Route::get('/', function () {
 
 // nueva ruta de almacen
 Route::get('/almacen', [WarehouseController::class, 'index'])->name('warehouse.index');
-// Ruta para autorizar la orden y restar el stock físico
-Route::post('/almacen/ordenes/{id}/autorizar', [OrderController::class, 'approveOrder'])->name('orders.approve');
-// Ruta del Dashboard principal
+
+/* NOTA: la aprobación/rechazo de órdenes ahora vive únicamente en el componente
+Livewire OrderDetailModal (ver app/Livewire/OrderDetailModal.php). Se eliminó
+la ruta y el OrderController duplicados para no tener dos copias de la misma
+lógica de negocio con riesgo de quedar desincronizadas.
+Ruta del Dashboard principal*/
 Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
 // Ruta para la vista de entradas de inventario
 Route::get('/almacen/entradas', function () {
     return view('warehouse.entries');});
+
 //Ruta para la vista del crud de insumos
 Route::get('/admin/productos', function () {
     return view('admin.products');});
+
 //Ruta para la vista del crud de residentes
     Route::get('/admin/residentes', function () {
     return view('admin.residents');});
