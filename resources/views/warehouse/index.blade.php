@@ -109,6 +109,11 @@
                     icon: 'success',
                     confirmButtonColor: '#10B981',
                     confirmButtonText: 'Aceptar'
+                }).then(() => {
+                    /* La tabla de órdenes pendientes es Blade estático (se renderiza
+                    una sola vez en el servidor), así que recargamos la página para
+                    que la orden recién aprobada deje de verse como "pendiente".*/
+                    window.location.reload();
                 });
             });
 
@@ -119,6 +124,8 @@
                     icon: 'info',
                     confirmButtonColor: '#EF4444',
                     confirmButtonText: 'Entendido'
+                }).then(() => {
+                    window.location.reload();
                 });
             });
         });
