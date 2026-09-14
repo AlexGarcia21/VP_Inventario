@@ -4,7 +4,8 @@ namespace App\Livewire;
 
 use Livewire\Component;
 use App\Models\Order;
-use Livewire\Attributes\On; // escuchar eventos en Livewire 
+use App\Models\Product;
+use Livewire\Attributes\On; 
 use Illuminate\Support\Facades\DB; 
 
 class OrderDetailModal extends Component
@@ -33,14 +34,28 @@ class OrderDetailModal extends Component
     {   
         try {
             DB::transaction(function () {
-                // Se Verifica  que la orden no haya sido aprobada previamente
-                if ($this->order->status !== 'pending') {
+
+                $order = Order::where('id', $this->order->id)->lockForUpdate()->first();
+
+                if ($order->status !== 'pending') {
                     throw new \Exception('Esta orden ya fue procesada.');
                 }
 
-                // Recorremos los insumos para restar el stock físicamente
-                foreach ($this->order->items as $item) {
-                    $product = $item->product;
+                /* Recorremos los insumos para restar el stock físicamente.
+                Usamos lockForUpdate() para bloquear la fila del producto mientras
+                dura la transacción: así, si dos aprobaciones del mismo insumo
+                ocurren al mismo tiempo, la segunda espera a que la primera termine
+                en vez de leer un stock desactualizado y dejarlo en negativo.
+                
+                Ordenamos por product_id antes de recorrerlos para que, si una orden
+                tiene varios insumos, todas las transacciones concurrentes bloqueen
+                los productos siempre en el mismo orden numérico. Esto evita un
+                deadlock de base de datos en el caso (poco probable, pero posible)
+                de que dos órdenes compartan insumos en secuencia inversa.*/
+                $items = $order->items()->with('product')->orderBy('product_id')->get();
+
+                foreach ($items as $item) {
+                    $product = Product::where('id', $item->product_id)->lockForUpdate()->first();
 
                     // Validamos que exista suficiente inventario
                     if ($product->current_stock < $item->requested_quantity) {
@@ -53,8 +68,9 @@ class OrderDetailModal extends Component
                 }
 
                 //Marcamos la orden completa como 'aprobada'
-                $this->order->status = 'approved';
-                $this->order->save();
+                $order->status = 'approved';
+                $order->save();
+                $this->order = $order;
             });
 
             // Si todo salió bien, cerramos el modal

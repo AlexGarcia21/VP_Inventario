@@ -48,18 +48,23 @@
 
                 {{-- Pie del modal con acciones --}}
                 <div class="bg-gray-50 p-4 border-t flex justify-end space-x-3">
-    <button wire:click="closeModal" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition-colors">
+    <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
         Cerrar
     </button>
     
     {{-- Botón de Rechazo --}}
-    <button wire:click.prevent="rejectOrder" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-sm">
+    <button wire:click.prevent="rejectOrder" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
         Rechazar Pedido ✖
     </button>
 
-    {{-- Botón de Autorización --}}
-    <button wire:click.prevent="approveOrder" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm">
-        Autorizar Salida ✔
+    {{-- Botón de Autorización. wire:loading.attr="disabled" es una defensa de
+         frontend contra el doble clic: no sustituye el lockForUpdate() de la
+         orden en el backend (esa es la protección real), pero evita el caso
+         más común de que un mismo usuario dispare la acción dos veces por
+         hacer doble clic o por una red lenta. --}}
+    <button wire:click.prevent="approveOrder" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
+        <span wire:loading.remove wire:target="approveOrder">Autorizar Salida ✔</span>
+        <span wire:loading wire:target="approveOrder">Procesando...</span>
     </button>
                 </div>
 
