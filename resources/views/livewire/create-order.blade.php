@@ -69,6 +69,15 @@
         @endforeach
     </div>
 </div>
+
+    <!-- Alerta de stock insuficiente al intentar agregar al carrito -->
+    @if (session()->has('cart_error'))
+        <div class="bg-red-100 border-l-4 border-red-500 text-red-800 p-4 mb-6 rounded-xl shadow-sm">
+            <p class="font-bold flex items-center">
+                <span class="mr-2">⚠️</span> {{ session('cart_error') }}
+            </p>
+        </div>
+    @endif
            <!-- Carrito de Asignación -->
 <div class="bg-white p-6 rounded-xl shadow-sm border-t-4 border-vp-lavanda">
     <h2 class="text-xl font-bold mb-4 text-vp-oscuro">Resumen de Asignación</h2>
@@ -87,10 +96,21 @@
                         <p class="font-bold text-vp-oscuro text-sm">{{ $item['name'] }}</p>
                         <p class="text-xs text-vp-morado font-semibold">Cantidad: {{ $item['quantity'] }}</p>
                     </div>
-                    <!-- Botón para quitar del carrito -->
-                    <button wire:click="removeFromCart({{ $id }})" class="text-red-500 hover:text-red-700 text-xs font-bold transition-colors">
-                        Quitar ✖
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <!-- Controles para ajustar la cantidad sin tener que quitar todo el renglón -->
+                        <div class="flex items-center gap-1">
+                            <button wire:click="decrementQuantity({{ $id }})" class="w-6 h-6 flex items-center justify-center rounded bg-white border border-gray-300 text-vp-oscuro text-sm font-bold hover:bg-gray-100 transition-colors">
+                                −
+                            </button>
+                            <button wire:click="addToCart({{ $id }})" class="w-6 h-6 flex items-center justify-center rounded bg-white border border-gray-300 text-vp-oscuro text-sm font-bold hover:bg-gray-100 transition-colors">
+                                +
+                            </button>
+                        </div>
+                        <!-- Botón para quitar del carrito -->
+                        <button wire:click="removeFromCart({{ $id }})" class="text-red-500 hover:text-red-700 text-xs font-bold transition-colors">
+                            Quitar ✖
+                        </button>
+                    </div>
                 </li>
             @endforeach
         </ul>

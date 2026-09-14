@@ -49,6 +49,18 @@ class CreateOrder extends Component
         $product = Product::find($product_id);
 
         if ($product) {
+            // Cantidad que ya llevamos de este producto en el carrito
+            $currentQuantity = $this->cart[$product_id]['quantity'] ?? 0;
+
+            // Validamos que no se pida más de lo que hay físicamente en existencia.
+            // Antes se podía armar una orden con cantidades imposibles y el error
+            // solo aparecía hasta el momento de aprobarla en Almacén, rechazando
+            // toda la orden por un solo insumo.
+            if ($currentQuantity + 1 > $product->current_stock) {
+                session()->flash('cart_error', "No hay suficiente stock de \"{$product->name}\". Disponible: {$product->current_stock}.");
+                return;
+            }
+
             // Verificamos si el producto ya existe en nuestro arreglo del carrito
             if (array_key_exists($product_id, $this->cart)) {
                 // Si ya está, solo aumentamos la cantidad
@@ -62,7 +74,21 @@ class CreateOrder extends Component
             }
         }
     }
-    // Método para quitar un insumo del carrito
+
+    // Método para restar una unidad de un insumo en el carrito.
+    // Si la cantidad llega a 0, se elimina el renglón por completo.
+    public function decrementQuantity($product_id)
+    {
+        if (array_key_exists($product_id, $this->cart)) {
+            $this->cart[$product_id]['quantity']--;
+
+            if ($this->cart[$product_id]['quantity'] <= 0) {
+                unset($this->cart[$product_id]);
+            }
+        }
+    }
+
+    // Método para quitar un insumo del carrito por completo
     public function removeFromCart($product_id)
     {
         // Verificamos si el producto está en el carrito
@@ -83,7 +109,11 @@ class CreateOrder extends Component
         // 2. Creamos la cabecera de la orden
         $order = Order::create([
             'resident_id' => $this->selectedResident,
-            'user_id' => 1, // NOTA: Por ahora "quemamos" el ID 1 hasta que programemos el Login
+            // NOTA: todavía no hay sistema de login implementado en el proyecto.
+            // Usamos auth()->id() para que, en cuanto se implemente el login, esto
+            // funcione automáticamente sin tocar este archivo; mientras tanto cae
+            // en el usuario de prueba (ID 1) para no romper el flujo actual.
+            'user_id' => auth()->id() ?? 1,
             'status' => 'pending' // Toda orden nace como pendiente
         ]);
 
