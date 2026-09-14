@@ -14,6 +14,7 @@ class ProductManager extends Component
     // Campos del formulario
     public $product_id = null;
     public $name = '';
+    public $brand = '';
     public $current_stock = 0;
     public $min_stock = 5;
 
@@ -34,6 +35,7 @@ class ProductManager extends Component
                 'required', 'string', 'max:255',
                 Rule::unique('products', 'name')->ignore($this->product_id),
             ],
+            'brand'         => 'nullable|string|max:255',
             'current_stock' => 'required|integer|min:0',
             'min_stock'     => 'required|integer|min:1',
         ];
@@ -52,6 +54,7 @@ class ProductManager extends Component
     {
         $this->product_id = null;
         $this->name = '';
+        $this->brand = '';
         $this->current_stock = 0;
         $this->min_stock = 5;
         $this->isEditing = false;
@@ -71,6 +74,7 @@ class ProductManager extends Component
             ['id' => $this->product_id],
             [
                 'name'          => $this->name,
+                'brand'         => $this->brand,
                 'current_stock' => $this->current_stock,
                 'min_stock'     => $this->min_stock,
             ]
@@ -86,6 +90,7 @@ class ProductManager extends Component
         $product = Product::findOrFail($id);
         $this->product_id = $product->id;
         $this->name = $product->name;
+        $this->brand = $product->brand;
         $this->current_stock = $product->current_stock;
         $this->min_stock = $product->min_stock;
         $this->isEditing = true;

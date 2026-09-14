@@ -5,7 +5,8 @@ namespace App\Livewire;
 use Livewire\Component;
 use App\Models\Order;
 use App\Models\Product;
-use Livewire\Attributes\On; 
+use App\Models\InventoryTransaction;
+use Livewire\Attributes\On; // escuchar eventos en Livewire 
 use Illuminate\Support\Facades\DB; 
 
 class OrderDetailModal extends Component
@@ -34,9 +35,9 @@ class OrderDetailModal extends Component
     {   
         try {
             DB::transaction(function () {
+                $order = Order::with('resident')->where('id', $this->order->id)->lockForUpdate()->first();
 
-                $order = Order::where('id', $this->order->id)->lockForUpdate()->first();
-
+                // Se Verifica  que la orden no haya sido aprobada previamente
                 if ($order->status !== 'pending') {
                     throw new \Exception('Esta orden ya fue procesada.');
                 }
@@ -51,7 +52,8 @@ class OrderDetailModal extends Component
                 tiene varios insumos, todas las transacciones concurrentes bloqueen
                 los productos siempre en el mismo orden numérico. Esto evita un
                 deadlock de base de datos en el caso (poco probable, pero posible)
-                de que dos órdenes compartan insumos en secuencia inversa.*/
+                de que dos órdenes compartan insumos en secuencia inversa. */
+
                 $items = $order->items()->with('product')->orderBy('product_id')->get();
 
                 foreach ($items as $item) {
@@ -65,6 +67,21 @@ class OrderDetailModal extends Component
                     // Restamos y guardamos el nuevo stock del producto
                     $product->current_stock -= $item->requested_quantity;
                     $product->save();
+
+                    /* Registramos el movimiento en la bitácora de inventario.
+                    InventoryEntry ya registraba las entradas ('entry') al recibir
+                    insumos de proveedor, pero aquí nunca se registraba la salida
+                    ('exit') al surtir una orden: la tabla inventory_transactions
+                    quedaba incompleta como historial de auditoría, aunque el
+                    diseño original (ver comentario en su migración) contemplaba
+                    registrar ahí tanto entradas como salidas. */
+                    InventoryTransaction::create([
+                        'product_id' => $product->id,
+                        'user_id'    => auth()->id() ?? 1,
+                        'type'       => 'exit',
+                        'quantity'   => $item->requested_quantity,
+                        'notes'      => "Salida por orden #{$order->id} - Residente: {$order->resident->name}",
+                    ]);
                 }
 
                 //Marcamos la orden completa como 'aprobada'
@@ -94,16 +111,23 @@ class OrderDetailModal extends Component
     public function rejectOrder()
     {
         try {
-            // 1. Verificamos que la orden no haya sido procesada antes
-            if ($this->order->status !== 'pending') {
-                throw new \Exception('Esta orden ya fue procesada.');
-            }
+            DB::transaction(function () {
+                // Igual que en approveOrder(): releemos la orden con lockForUpdate()
+                $order = Order::where('id', $this->order->id)->lockForUpdate()->first();
 
-            // 2. Cambiamos el estado a rechazado sin alterar el stock
-            $this->order->status = 'rejected';
-            $this->order->save();
+                // Verificamos que la orden no haya sido procesada antes
+                if ($order->status !== 'pending') {
+                    throw new \Exception('Esta orden ya fue procesada.');
+                }
 
-            // 3. Cerramos modal y disparamos evento
+                // Cambiamos el estado a rechazado sin alterar el stock
+                $order->status = 'rejected';
+                $order->save();
+
+                $this->order = $order;
+            });
+
+            // Cerramos modal y disparamos evento
             $this->closeModal();
             $this->dispatch('orderRejected');
 

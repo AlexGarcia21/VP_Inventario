@@ -43,6 +43,14 @@
                         @error('name') <span class="text-xs text-red-500 font-medium">{{ $message }}</span> @enderror
                     </div>
 
+                    {{-- Marca --}}
+                    <div>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Marca</label>
+                        <input type="text" wire:model="brand" placeholder="Ej. Huggies, Kleenex... (opcional)" 
+                               class="w-full bg-vp-beige border border-gray-200 text-vp-oscuro rounded-lg p-3 text-sm focus:ring-vp-morado focus:border-vp-morado">
+                        @error('brand') <span class="text-xs text-red-500 font-medium">{{ $message }}</span> @enderror
+                    </div>
+
                     {{-- Stock Inicial / Actual --}}
                     <div>
                         <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1">Stock Actual (Unidades) *</label>
@@ -107,6 +115,9 @@
                                 <tr class="hover:bg-gray-50 transition-colors">
                                     <td class="px-5 py-4 whitespace-nowrap">
                                         <p class="text-sm font-bold text-gray-800">{{ $product->name }}</p>
+                                        @if($product->brand)
+                                            <p class="text-xs text-gray-400">{{ $product->brand }}</p>
+                                        @endif
                                     </td>
                                     <td class="px-5 py-4 whitespace-nowrap text-center">
                                         <span class="text-sm font-extrabold {{ $product->current_stock <= $product->min_stock ? 'text-red-600' : 'text-gray-700' }}">
