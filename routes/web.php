@@ -1,31 +1,54 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\WarehouseController; // warehouse controller para manejar la vista de almacén
-use App\Http\Controllers\OrderController; // ordercontroller para manejar la aprobación de órdenes 
-use App\Http\Controllers\DashboardController; // dashboard controller para manejar la vista del dashboard
-Route::get('/', function () {
-    return view('welcome'); 
+use App\Http\Controllers\WarehouseController;
+use App\Http\Controllers\DashboardController;
+use App\Livewire\Auth\Login;
+use Illuminate\Support\Facades\Auth;
+
+/*
+ Rutas Públicas (Autenticación)
+*/
+Route::get('/login', Login::class)->name('login');
+
+Route::post('/logout', function () {
+    Auth::logout();
+    request()->session()->invalidate();
+    request()->session()->regenerateToken();
+    return redirect('/login');
+})->name('logout');
+
+/*
+ Rutas Protegidas por Rol
+*/
+
+// 1. Solicitante (Enfermería), Supervisor y Administrador
+Route::middleware(['auth', 'role:solicitante,supervisor,admin'])->group(function () {
+    Route::get('/', function () { 
+        return view('welcome'); 
+    })->name('orders.create');
 });
 
-// nueva ruta de almacen
-Route::get('/almacen', [WarehouseController::class, 'index'])->name('warehouse.index');
+// 2. Supervisor (Almacén) y Administrador
+Route::middleware(['auth', 'role:supervisor,admin'])->prefix('almacen')->group(function () {
+    // Al entrar a /almacen, se ejecuta WarehouseController@index que envía $lowStockProducts y $pendingOrders
+    Route::get('/', [WarehouseController::class, 'index'])->name('warehouse.index');
+    
+    // Al entrar a /almacen/entradas
+    Route::get('/entradas', function () { 
+        return view('warehouse.entries'); 
+    })->name('warehouse.entries');
+});
 
-/* NOTA: la aprobación/rechazo de órdenes ahora vive únicamente en el componente
-Livewire OrderDetailModal (ver app/Livewire/OrderDetailModal.php). Se eliminó
-la ruta y el OrderController duplicados para no tener dos copias de la misma
-lógica de negocio con riesgo de quedar desincronizadas.
-Ruta del Dashboard principal*/
-Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+// 3. Administrador Exclusivo
+Route::middleware(['auth', 'role:admin'])->prefix('admin')->group(function () {
+    Route::get('/productos', function () { 
+        return view('admin.products'); 
+    })->name('admin.products');
 
-// Ruta para la vista de entradas de inventario
-Route::get('/almacen/entradas', function () {
-    return view('warehouse.entries');});
+    Route::get('/residentes', function () { 
+        return view('admin.residents'); 
+    })->name('admin.residents');
 
-//Ruta para la vista del crud de insumos
-Route::get('/admin/productos', function () {
-    return view('admin.products');});
-
-//Ruta para la vista del crud de residentes
-    Route::get('/admin/residentes', function () {
-    return view('admin.residents');});
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+});
