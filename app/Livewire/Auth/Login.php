@@ -32,7 +32,7 @@ class Login extends Component
 
             // Redirección inteligente según el rol
             return match ($role) {
-                'admin'       => redirect()->intended('/admin/productos'),
+                'admin'       => redirect()->intended('/admin/dashboard'),
                 'supervisor'  => redirect()->intended('/almacen'),
                 'solicitante' => redirect()->intended('/'),
                 default       => redirect('/'),

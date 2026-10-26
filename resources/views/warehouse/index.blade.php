@@ -1,134 +1,179 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Almacén - Villa Plata</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-vp-beige min-h-screen">
-    <x-navbar />
+<x-layout title="Almacén">
 
-    <div class="max-w-7xl mx-auto px-4 pb-8">
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold text-vp-oscuro">Panel de Almacén - Órdenes Pendientes</h1>
-            <a href="/almacen/entradas" class="bg-vp-morado hover:bg-vp-oscuro text-white text-sm font-bold py-2.5 px-4 rounded-lg transition-colors shadow-sm">
-                + Registrar Entrada de Proveedor
-            </a>
+    <header class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+            <p class="mb-1 text-xs font-bold uppercase tracking-widest text-vp-morado">Almacén</p>
+            <h1 class="text-2xl font-extrabold text-vp-oscuro sm:text-3xl">Órdenes pendientes</h1>
+            <p class="mt-1 text-vp-oscuro/70">Revisa cada pedido de enfermería y autoriza la salida de insumos.</p>
         </div>
+        <a href="/almacen/entradas"
+           class="inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-xl bg-vp-morado px-5 font-bold text-white shadow-sm transition hover:bg-vp-oscuro focus:outline-none focus:ring-4 focus:ring-vp-morado/30">
+            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            Registrar entrada de proveedor
+        </a>
+    </header>
 
-        {{-- SECCIÓN: Alertas de Stock Mínimo --}}
-        @if($lowStockProducts->isNotEmpty())
-            <div class="mb-8 bg-red-50 border-l-4 border-red-500 p-5 rounded-xl shadow-sm">
-                <div class="flex items-center gap-2 mb-3">
-                    <span class="text-xl">⚠️</span>
-                    <h2 class="text-lg font-bold text-red-800">Insumos con Stock Crítico</h2>
-                </div>
-                <p class="text-xs text-red-600 mb-4 font-medium">
-                    Los siguientes artículos han alcanzado o están por debajo de su umbral mínimo configurado.
-                </p>
-
-                <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    @foreach($lowStockProducts as $product)
-                        <div class="bg-white p-4 rounded-lg border border-red-200 shadow-sm flex flex-col justify-between">
-                            <div>
-                                <span class="text-xs font-semibold text-red-500 uppercase tracking-wider">Alerta de Existencia</span>
-                                <h3 class="font-bold text-gray-800 text-sm mt-1">{{ $product->name }}</h3>
-                            </div>
-                            
-                            <div class="mt-3 flex justify-between items-end border-t pt-2 border-gray-100 text-xs">
-                                <div>
-                                    <p class="text-gray-500">Actual:</p>
-                                    <p class="font-extrabold text-red-600 text-sm">{{ $product->current_stock }} unid.</p>
-                                </div>
-                                <div class="text-right">
-                                    <p class="text-gray-500">Mínimo:</p>
-                                    <p class="font-bold text-gray-700 text-sm">{{ $product->min_stock }} unid.</p>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
+    {{-- ============ ALERTA DE STOCK CRÍTICO ============ --}}
+    @if($lowStockProducts->isNotEmpty())
+        <section class="mb-8 rounded-2xl border border-amber-200 bg-amber-50 p-5 sm:p-6" aria-labelledby="titulo-stock">
+            <div class="mb-4 flex items-start gap-3">
+                <span class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-800">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v4"/><path d="M12 17.5v.01"/></svg>
+                </span>
+                <div>
+                    <h2 id="titulo-stock" class="text-lg font-bold text-vp-oscuro">
+                        Insumos con stock crítico
+                        <span class="ml-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-sm font-bold text-amber-800">{{ $lowStockProducts->count() }}</span>
+                    </h2>
+                    <p class="text-sm text-vp-oscuro/70">Alcanzaron o están por debajo de su mínimo configurado. Conviene reabastecerlos.</p>
                 </div>
             </div>
-        @endif
 
-        {{-- TABLA: Órdenes Pendientes --}}
-        <div class="bg-white rounded-xl shadow-md overflow-hidden">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-vp-lavanda">
-                    <tr>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Folio</th>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Fecha de Solicitud</th>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Residente</th>
-                        <th scope="col" class="px-6 py-4 text-left text-sm font-semibold text-white uppercase tracking-wider">Artículos</th>
-                        <th scope="col" class="px-6 py-4 text-center text-sm font-semibold text-white uppercase tracking-wider">Acción</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    @forelse ($pendingOrders as $order)
-                        <tr class="hover:bg-gray-50 transition duration-150">
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-vp-oscuro font-medium">
-                                #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $order->created_at->format('d/m/Y H:i') }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-800">
-                                {{ $order->resident->name }}
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                {{ $order->items->count() }} insumos
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                                <button onclick="Livewire.dispatch('openModal', { orderId: {{ $order->id }} })" class="bg-vp-morado hover:bg-opacity-90 text-white px-4 py-2 rounded-lg transition-colors">
-                                    Revisar y Surtir
-                                </button>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="5" class="px-6 py-8 text-center text-gray-500 font-medium">
-                                No hay órdenes de insumos pendientes en este momento.
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
+            <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                @foreach($lowStockProducts as $product)
+                    @php $out = $product->current_stock <= 0; @endphp
+                    <div class="rounded-xl border border-amber-200 bg-white p-4">
+                        <h3 class="font-bold leading-snug text-vp-oscuro">{{ $product->name }}</h3>
+                        <div class="mt-3 flex items-end justify-between text-sm">
+                            <div>
+                                <p class="text-vp-oscuro/60">Actual</p>
+                                <p class="text-lg font-extrabold {{ $out ? 'text-red-700' : 'text-amber-700' }}">{{ $product->current_stock }}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-vp-oscuro/60">Mínimo</p>
+                                <p class="text-lg font-bold text-vp-oscuro">{{ $product->min_stock }}</p>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </section>
+    @endif
+
+    {{-- ============ ÓRDENES PENDIENTES ============ --}}
+    <section class="rounded-2xl border border-gray-100 bg-white shadow-sm" aria-labelledby="titulo-ordenes">
+        <div class="flex items-center justify-between border-b border-gray-100 px-5 py-4 sm:px-6">
+            <h2 id="titulo-ordenes" class="text-lg font-bold text-vp-oscuro">Pedidos por surtir</h2>
+            <span class="inline-flex h-7 min-w-7 items-center justify-center rounded-full bg-vp-lavanda/25 px-2 text-sm font-bold text-vp-morado">{{ $pendingOrders->count() }}</span>
         </div>
-    </div>
+
+        @if($pendingOrders->isEmpty())
+            <div class="px-6 py-14 text-center">
+                <span class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-green-50 text-green-600">
+                    <svg class="h-7 w-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>
+                </span>
+                <p class="font-bold text-vp-oscuro">Todo al día</p>
+                <p class="mt-1 text-sm text-vp-oscuro/70">No hay órdenes de insumos pendientes en este momento.</p>
+            </div>
+        @else
+            {{-- Tabla: tablet horizontal, tablet vertical y PC (md+) --}}
+            <div class="hidden overflow-x-auto md:block">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-100 bg-vp-beige/60 text-left text-xs font-bold uppercase tracking-wide text-vp-oscuro/60">
+                            <th scope="col" class="px-6 py-3">Folio</th>
+                            <th scope="col" class="px-6 py-3">Solicitado</th>
+                            <th scope="col" class="px-6 py-3">Residente</th>
+                            <th scope="col" class="px-6 py-3">Insumos</th>
+                            <th scope="col" class="px-6 py-3 text-right"><span class="sr-only">Acción</span></th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @foreach($pendingOrders as $order)
+                            @php $n = $order->items->count(); @endphp
+                            <tr class="transition-colors hover:bg-vp-beige/50">
+                                <td class="whitespace-nowrap px-6 py-4 font-bold text-vp-oscuro">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-vp-oscuro/70">{{ $order->created_at->format('d/m/Y H:i') }}</td>
+                                <td class="px-6 py-4 font-semibold text-vp-oscuro">{{ $order->resident->name }}</td>
+                                <td class="whitespace-nowrap px-6 py-4 text-vp-oscuro/70">{{ $n }} {{ $n === 1 ? 'insumo' : 'insumos' }}</td>
+                                <td class="px-6 py-4 text-right">
+                                    <button type="button" onclick="Livewire.dispatch('openModal', { orderId: {{ $order->id }} })"
+                                            class="h-11 rounded-xl bg-vp-morado px-5 text-sm font-bold text-white transition hover:bg-vp-oscuro focus:outline-none focus:ring-4 focus:ring-vp-morado/30">
+                                        Revisar y surtir
+                                    </button>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+
+            {{-- Tarjetas: pantallas angostas (menos de md) --}}
+            <ul class="divide-y divide-gray-100 md:hidden">
+                @foreach($pendingOrders as $order)
+                    @php $n = $order->items->count(); @endphp
+                    <li class="p-5">
+                        <div class="flex items-start justify-between gap-3">
+                            <div>
+                                <p class="font-bold text-vp-oscuro">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</p>
+                                <p class="text-sm text-vp-oscuro/70">{{ $order->created_at->format('d/m/Y H:i') }}</p>
+                            </div>
+                            <span class="rounded-full bg-vp-lavanda/25 px-3 py-1 text-xs font-bold text-vp-morado">{{ $n }} {{ $n === 1 ? 'insumo' : 'insumos' }}</span>
+                        </div>
+                        <p class="mt-3 font-semibold text-vp-oscuro">{{ $order->resident->name }}</p>
+                        <button type="button" onclick="Livewire.dispatch('openModal', { orderId: {{ $order->id }} })"
+                                class="mt-4 h-12 w-full rounded-xl bg-vp-morado font-bold text-white transition hover:bg-vp-oscuro focus:outline-none focus:ring-4 focus:ring-vp-morado/30">
+                            Revisar y surtir
+                        </button>
+                    </li>
+                @endforeach
+            </ul>
+        @endif
+    </section>
 
     @livewire('order-detail-modal')
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    {{-- ============ AVISO TRAS APROBAR / RECHAZAR ============ --}}
+    {{-- La tabla de órdenes se renderiza una sola vez en el servidor, así que al
+         aprobar o rechazar se recarga la página. El mensaje se guarda en
+         sessionStorage justo antes de recargar y se muestra al volver a cargar. --}}
+    <div x-data="{ toast: null, timer: null }"
+         x-init="
+            const saved = sessionStorage.getItem('vp-toast');
+            if (saved) {
+                sessionStorage.removeItem('vp-toast');
+                try { toast = JSON.parse(saved); timer = setTimeout(() => toast = null, 7000); } catch (e) {}
+            }"
+         class="pointer-events-none fixed inset-x-4 top-20 z-[60] flex justify-end sm:inset-x-6">
+        <div x-show="toast" x-transition role="status"
+             class="pointer-events-auto w-full max-w-sm rounded-xl border border-gray-200 bg-white p-4 shadow-lg">
+            <div class="flex items-start gap-3">
+                <span x-show="toast && toast.type === 'success'" class="mt-0.5 shrink-0 text-green-600">
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.5"/></svg>
+                </span>
+                <span x-show="toast && toast.type !== 'success'" class="mt-0.5 shrink-0 text-vp-morado">
+                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5"/><path d="M12 8v.01"/></svg>
+                </span>
+                <div class="min-w-0 flex-1">
+                    <p class="font-bold text-vp-oscuro" x-text="toast ? toast.title : ''"></p>
+                    <p class="text-sm text-vp-oscuro/70" x-text="toast ? toast.text : ''"></p>
+                </div>
+                <button type="button" @click="toast = null" aria-label="Cerrar aviso"
+                        class="-mr-1 -mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-vp-oscuro/60 hover:bg-gray-100">
+                    <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('livewire:init', () => {
-            Livewire.on('orderApproved', () => {
-                Swal.fire({
-                    title: '¡Orden Autorizada!',
-                    text: 'La salida se registró y el stock ha sido descontado correctamente.',
-                    icon: 'success',
-                    confirmButtonColor: '#10B981',
-                    confirmButtonText: 'Aceptar'
-                }).then(() => {
-                    /* La tabla de órdenes pendientes es Blade estático (se renderiza
-                    una sola vez en el servidor), así que recargamos la página para
-                    que la orden recién aprobada deje de verse como "pendiente".*/
-                    window.location.reload();
-                });
-            });
+            const notifyAndReload = (toast) => {
+                try { sessionStorage.setItem('vp-toast', JSON.stringify(toast)); } catch (e) {}
+                window.location.reload();
+            };
 
-            Livewire.on('orderRejected', () => {
-                Swal.fire({
-                    title: 'Orden Rechazada',
-                    text: 'La solicitud ha sido rechazada y no se modificó el inventario.',
-                    icon: 'info',
-                    confirmButtonColor: '#EF4444',
-                    confirmButtonText: 'Entendido'
-                }).then(() => {
-                    window.location.reload();
-                });
-            });
+            Livewire.on('orderApproved', () => notifyAndReload({
+                type: 'success',
+                title: 'Orden autorizada',
+                text: 'La salida se registró y el stock fue descontado correctamente.'
+            }));
+
+            Livewire.on('orderRejected', () => notifyAndReload({
+                type: 'info',
+                title: 'Orden rechazada',
+                text: 'La solicitud fue rechazada y no se modificó el inventario.'
+            }));
         });
     </script>
-</body>
-</html>
+</x-layout>
