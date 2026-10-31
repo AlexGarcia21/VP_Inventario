@@ -1,74 +1,127 @@
 <div>
     @if($isOpen && $order)
-        {{-- Fondo oscuro detrás del modal --}}
-        <div class="fixed inset-0 bg-black bg-opacity-50 z-40 flex items-center justify-center transition-opacity"> 
-            
-            {{-- Contenedor principal --}}
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 z-50 overflow-hidden flex flex-col max-h-[90vh]"> 
-                
+        @php
+            $hasShortage = $order->items->contains(fn ($item) => $item->product->current_stock < $item->requested_quantity);
+            $totalUnits  = $order->items->sum('requested_quantity');
+        @endphp
+
+        {{-- Fondo: clic fuera o tecla Esc cierran el modal --}}
+        <div class="fixed inset-0 z-50 flex items-end justify-center bg-vp-oscuro/60 backdrop-blur-sm sm:items-center sm:p-4"
+             x-data x-on:keydown.escape.window="$wire.closeModal()"
+             wire:click.self="closeModal"
+             role="dialog" aria-modal="true" aria-labelledby="titulo-orden">
+
+            <div class="flex max-h-[92vh] w-full max-w-2xl flex-col overflow-hidden rounded-t-3xl bg-white shadow-2xl sm:rounded-3xl">
+
                 {{-- Encabezado --}}
-                <div class="bg-vp-lavanda p-4 flex justify-between items-center text-white">
-                    <h3 class="text-lg font-bold">
-                        Detalle de Orden #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}
-                    </h3>
-                    <button wire:click="closeModal" class="text-white hover:text-red-200 font-bold text-xl transition-colors">
-                        ✖
+                <div class="flex items-start justify-between gap-4 border-b border-gray-100 px-5 py-4 sm:px-6">
+                    <div>
+                        <p class="text-xs font-bold uppercase tracking-widest text-vp-morado">Detalle del pedido</p>
+                        <h3 id="titulo-orden" class="text-xl font-extrabold text-vp-oscuro">Orden #{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</h3>
+                    </div>
+                    <button type="button" wire:click="closeModal" aria-label="Cerrar"
+                            class="-mr-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-vp-oscuro/70 transition hover:bg-gray-100 focus:outline-none focus:ring-4 focus:ring-vp-morado/20">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg>
                     </button>
                 </div>
 
-                {{-- Cuerpo del modal --}}
-                <div class="p-6 overflow-y-auto"> 
-                    {{-- Alerta de Errores --}}
+                {{-- Cuerpo --}}
+                <div class="space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
+
+                    {{-- Error al autorizar --}}
                     @if (session()->has('error'))
-                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4 rounded shadow-sm" role="alert">
-                            <p class="font-bold text-sm">No se pudo autorizar:</p>
-                            <p class="text-sm">{{ session('error') }}</p>
+                        <div role="alert" class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
+                            <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5v.01"/></svg>
+                            <div>
+                                <p class="text-sm font-bold">No se pudo completar la acción</p>
+                                <p class="text-sm">{{ session('error') }}</p>
+                            </div>
                         </div>
                     @endif
 
-                    {{-- Datos del paciente --}}
-                    <div class="mb-4 bg-vp-beige p-3 rounded-lg border border-gray-200">
-                        <p class="text-sm text-gray-600"><strong>Paciente:</strong> {{ $order->resident->name }}</p>
-                        <p class="text-sm text-gray-600"><strong>Fecha:</strong> {{ $order->created_at->format('d/m/Y H:i') }}</p>
-                    </div>
+                    {{-- Datos del pedido --}}
+                    <dl class="grid gap-3 rounded-xl bg-vp-beige p-4 sm:grid-cols-3">
+                        <div>
+                            <dt class="text-xs font-bold uppercase tracking-wide text-vp-oscuro/60">Residente</dt>
+                            <dd class="font-bold text-vp-oscuro">{{ $order->resident->name }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-bold uppercase tracking-wide text-vp-oscuro/60">Solicitado</dt>
+                            <dd class="font-semibold text-vp-oscuro">{{ $order->created_at->format('d/m/Y H:i') }}</dd>
+                        </div>
+                        <div>
+                            <dt class="text-xs font-bold uppercase tracking-wide text-vp-oscuro/60">Total de unidades</dt>
+                            <dd class="font-bold text-vp-oscuro">{{ $totalUnits }}</dd>
+                        </div>
+                    </dl>
+
+                    {{-- Aviso de existencias insuficientes --}}
+                    @if($hasShortage)
+                        <div role="alert" class="flex items-start gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900">
+                            <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3 2 21h20L12 3z"/><path d="M12 10v4"/><path d="M12 17.5v.01"/></svg>
+                            <p class="text-sm">
+                                <span class="font-bold">No hay existencias suficientes para surtir esta orden.</span>
+                                Registra una entrada de proveedor o rechaza el pedido.
+                            </p>
+                        </div>
+                    @endif
 
                     {{-- Insumos solicitados --}}
-                    <h4 class="font-bold text-vp-oscuro mb-3 border-b pb-2">Insumos Solicitados</h4>
-                    <ul class="space-y-2">
-                        @foreach($order->items as $item)
-                            <li class="flex justify-between items-center bg-gray-50 p-3 rounded border border-gray-100">
-                                <span class="font-medium text-gray-800">{{ $item->product->name }}</span>
-                                <span class="bg-vp-morado text-white text-xs font-bold px-3 py-1 rounded-full">
-                                    {{ $item->requested_quantity }} unid.
-                                </span>
-                            </li>
-                        @endforeach
-                    </ul>
+                    <div>
+                        <h4 class="mb-3 text-sm font-bold uppercase tracking-wide text-vp-oscuro/70">Insumos solicitados</h4>
+                        <ul class="space-y-2">
+                            @foreach($order->items as $item)
+                                @php
+                                    $stock = $item->product->current_stock;
+                                    $short = $stock < $item->requested_quantity;
+                                @endphp
+                                <li class="flex items-center justify-between gap-4 rounded-xl border p-4 {{ $short ? 'border-red-200 bg-red-50' : 'border-gray-100 bg-vp-beige/60' }}">
+                                    <div class="min-w-0">
+                                        <p class="font-bold leading-snug text-vp-oscuro">{{ $item->product->name }}</p>
+                                        <p class="text-sm {{ $short ? 'font-semibold text-red-700' : 'text-vp-oscuro/70' }}">
+                                            Disponible: {{ $stock }}@if($short) · Faltan {{ $item->requested_quantity - $stock }}@endif
+                                        </p>
+                                    </div>
+                                    <div class="shrink-0 text-right">
+                                        <p class="text-xs font-bold uppercase tracking-wide text-vp-oscuro/60">Solicita</p>
+                                        <p class="text-2xl font-extrabold leading-none text-vp-morado">{{ $item->requested_quantity }}</p>
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    </div>
                 </div>
 
-                {{-- Pie del modal con acciones --}}
-                <div class="bg-gray-50 p-4 border-t flex justify-end space-x-3">
-    <button wire:click="closeModal" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 text-gray-800 rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed">
-        Cerrar
-    </button>
-    
-    {{-- Botón de Rechazo --}}
-    <button wire:click.prevent="rejectOrder" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-        Rechazar Pedido ✖
-    </button>
+                {{-- Acciones --}}
+                <div class="flex flex-col-reverse gap-3 border-t border-gray-100 bg-vp-beige/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+                    <button type="button" wire:click="closeModal" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder"
+                            class="h-12 rounded-xl px-5 font-bold text-vp-oscuro transition hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-vp-morado/20 disabled:cursor-not-allowed disabled:opacity-50">
+                        Cerrar
+                    </button>
 
-    {{-- Botón de Autorización. wire:loading.attr="disabled" es una defensa de
-         frontend contra el doble clic: no sustituye el lockForUpdate() de la
-         orden en el backend (esa es la protección real), pero evita el caso
-         más común de que un mismo usuario dispare la acción dos veces por
-         hacer doble clic o por una red lenta. --}}
-    <button wire:click.prevent="approveOrder" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder" class="px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg font-bold transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed">
-        <span wire:loading.remove wire:target="approveOrder">Autorizar Salida ✔</span>
-        <span wire:loading wire:target="approveOrder">Procesando...</span>
-    </button>
+                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                        {{-- Rechazar: pide confirmación porque no se puede deshacer --}}
+                        <button type="button" wire:click.prevent="rejectOrder"
+                                wire:confirm="¿Rechazar este pedido? El inventario no se modificará."
+                                wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder"
+                                class="h-12 rounded-xl border-2 border-red-300 px-5 font-bold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-50">
+                            Rechazar pedido
+                        </button>
+
+                        {{-- Autorizar: wire:loading.attr es solo una defensa contra el doble clic;
+                             la protección real es el lockForUpdate() del backend. --}}
+                        <button type="button" wire:click.prevent="approveOrder" @disabled($hasShortage)
+                                wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder"
+                                class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-vp-morado px-6 font-bold text-white shadow-sm transition hover:bg-vp-oscuro focus:outline-none focus:ring-4 focus:ring-vp-morado/30 disabled:cursor-not-allowed disabled:bg-vp-gris disabled:opacity-60">
+                            <svg wire:loading wire:target="approveOrder" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                            </svg>
+                            <span wire:loading.remove wire:target="approveOrder">Autorizar salida</span>
+                            <span wire:loading wire:target="approveOrder">Procesando…</span>
+                        </button>
+                    </div>
                 </div>
-
-                
             </div>
         </div>
     @endif

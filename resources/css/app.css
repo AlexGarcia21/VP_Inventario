@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Tailwind 4 no escanea vendor/: sin esto la paginación se ve sin estilos */
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../vendor/livewire/livewire/src/Features/SupportPagination/views/*.blade.php';
+
 @theme {
     /* Paleta corporativa "Villa Plata" */
     --color-vp-beige: #F9F8F6;

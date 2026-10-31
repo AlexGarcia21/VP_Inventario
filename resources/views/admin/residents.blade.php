@@ -1,21 +1,9 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Administración de Residentes - Villa Plata</title>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-</head>
-<body class="bg-vp-beige min-h-screen">
-    <x-navbar />
+<x-layout title="Residentes">
+    <header class="mb-8">
+        <p class="mb-1 text-xs font-bold uppercase tracking-widest text-vp-morado">Catálogo</p>
+        <h1 class="text-2xl font-extrabold text-vp-oscuro sm:text-3xl">Padrón de residentes</h1>
+        <p class="mt-1 text-vp-oscuro/70">Registra a los residentes y asígnalos a su piso. Enfermería los elige al armar un pedido.</p>
+    </header>
 
-    <div class="max-w-7xl mx-auto px-4 pb-8">
-        <div class="mb-8">
-            <h1 class="text-3xl font-bold text-vp-oscuro">Padrón de Residentes</h1>
-            <p class="text-vp-lavanda font-medium">Asignación por Pisos - Villa Plata</p>
-        </div>
-
-        @livewire('resident-manager')
-    </div>
-</body>
-</html>
+    @livewire('resident-manager')
+</x-layout>
