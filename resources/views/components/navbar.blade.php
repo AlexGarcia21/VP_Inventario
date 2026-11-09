@@ -20,6 +20,7 @@
     $links = [
         ['href' => '/admin/dashboard',  'label' => 'Dashboard',  'match' => 'admin/dashboard*',  'roles' => ['admin']],
         ['href' => '/',                 'label' => 'Pedidos',    'match' => '/',                 'roles' => ['solicitante', 'supervisor', 'admin']],
+        ['href' => '/mis-pedidos',      'label' => 'Mis pedidos', 'match' => 'mis-pedidos*',      'roles' => ['solicitante']],
         ['href' => '/almacen',          'label' => 'Almacén',    'match' => 'almacen*',          'roles' => ['supervisor', 'admin']],
         ['href' => '/admin/productos',  'label' => 'Insumos',    'match' => 'admin/productos*',  'roles' => ['admin']],
         ['href' => '/admin/residentes', 'label' => 'Residentes', 'match' => 'admin/residentes*', 'roles' => ['admin']],

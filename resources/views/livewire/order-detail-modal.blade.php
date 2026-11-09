@@ -28,7 +28,7 @@
                 {{-- Cuerpo --}}
                 <div class="space-y-5 overflow-y-auto px-5 py-5 sm:px-6">
 
-                    {{-- Error al autorizar --}}
+                    {{-- Error al autorizar o rechazar --}}
                     @if (session()->has('error'))
                         <div role="alert" class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-red-800">
                             <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 8v5"/><path d="M12 16.5v.01"/></svg>
@@ -90,38 +90,80 @@
                             @endforeach
                         </ul>
                     </div>
+
+                    {{-- Motivo del rechazo (solo aparece al pulsar "Rechazar pedido") --}}
+                    @if($rejecting)
+                        <div class="rounded-xl border border-red-200 bg-red-50/60 p-4"
+                             x-data x-init="$nextTick(() => { $el.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); $el.querySelector('textarea').focus(); })">
+                            <label for="motivo-rechazo" class="mb-1 block text-sm font-bold text-vp-oscuro">Motivo del rechazo <span class="text-red-700">*</span></label>
+                            <p class="mb-3 text-sm text-vp-oscuro/70">Enfermería verá este mensaje en "Mis pedidos".</p>
+
+                            <textarea id="motivo-rechazo" wire:model="rejectionReason" rows="3" maxlength="255"
+                                      placeholder="Ej. Sin existencias de pañales hasta el viernes"
+                                      @error('rejectionReason') aria-invalid="true" @enderror
+                                      class="block w-full rounded-xl border bg-white px-4 py-3 text-base text-vp-oscuro placeholder:text-vp-gris focus:outline-none focus:ring-4 focus:ring-red-200 @error('rejectionReason') border-red-400 @else border-gray-200 @enderror"></textarea>
+                            @error('rejectionReason')
+                                <p role="alert" class="mt-2 text-sm font-medium text-red-600">{{ $message }}</p>
+                            @enderror
+
+                            <div class="mt-3 flex flex-wrap gap-2">
+                                @foreach(['Sin existencias', 'Pedido duplicado', 'Cantidad incorrecta'] as $quick)
+                                    <button type="button" wire:click="$set('rejectionReason', '{{ $quick }}')"
+                                            class="h-10 rounded-full border border-red-200 bg-white px-4 text-sm font-semibold text-red-800 transition hover:bg-red-100">
+                                        {{ $quick }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
                 </div>
 
                 {{-- Acciones --}}
-                <div class="flex flex-col-reverse gap-3 border-t border-gray-100 bg-vp-beige/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
-                    <button type="button" wire:click="closeModal" wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder"
-                            class="h-12 rounded-xl px-5 font-bold text-vp-oscuro transition hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-vp-morado/20 disabled:cursor-not-allowed disabled:opacity-50">
-                        Cerrar
-                    </button>
-
-                    <div class="flex flex-col-reverse gap-3 sm:flex-row">
-                        {{-- Rechazar: pide confirmación porque no se puede deshacer --}}
-                        <button type="button" wire:click.prevent="rejectOrder"
-                                wire:confirm="¿Rechazar este pedido? El inventario no se modificará."
-                                wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder"
-                                class="h-12 rounded-xl border-2 border-red-300 px-5 font-bold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-50">
-                            Rechazar pedido
+                @if($rejecting)
+                    <div class="flex flex-col-reverse gap-3 border-t border-gray-100 bg-vp-beige/50 p-4 sm:flex-row sm:items-center sm:justify-end sm:px-6 sm:py-5">
+                        <button type="button" wire:click="cancelReject" wire:loading.attr="disabled" wire:target="rejectOrder"
+                                class="h-12 rounded-xl px-5 font-bold text-vp-oscuro transition hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-vp-morado/20 disabled:cursor-not-allowed disabled:opacity-50">
+                            Volver
                         </button>
-
-                        {{-- Autorizar: wire:loading.attr es solo una defensa contra el doble clic;
-                             la protección real es el lockForUpdate() del backend. --}}
-                        <button type="button" wire:click.prevent="approveOrder" @disabled($hasShortage)
-                                wire:loading.attr="disabled" wire:target="approveOrder,rejectOrder"
-                                class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-vp-morado px-6 font-bold text-white shadow-sm transition hover:bg-vp-oscuro focus:outline-none focus:ring-4 focus:ring-vp-morado/30 disabled:cursor-not-allowed disabled:bg-vp-gris disabled:opacity-60">
-                            <svg wire:loading wire:target="approveOrder" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                        <button type="button" wire:click="rejectOrder" wire:loading.attr="disabled" wire:target="rejectOrder"
+                                class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 font-bold text-white shadow-sm transition hover:bg-red-700 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-wait disabled:opacity-70">
+                            <svg wire:loading wire:target="rejectOrder" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
                             </svg>
-                            <span wire:loading.remove wire:target="approveOrder">Autorizar salida</span>
-                            <span wire:loading wire:target="approveOrder">Procesando…</span>
+                            <span wire:loading.remove wire:target="rejectOrder">Confirmar rechazo</span>
+                            <span wire:loading wire:target="rejectOrder">Rechazando…</span>
                         </button>
                     </div>
-                </div>
+                @else
+                    <div class="flex flex-col-reverse gap-3 border-t border-gray-100 bg-vp-beige/50 p-4 sm:flex-row sm:items-center sm:justify-between sm:px-6 sm:py-5">
+                        <button type="button" wire:click="closeModal" wire:loading.attr="disabled" wire:target="approveOrder"
+                                class="h-12 rounded-xl px-5 font-bold text-vp-oscuro transition hover:bg-gray-200 focus:outline-none focus:ring-4 focus:ring-vp-morado/20 disabled:cursor-not-allowed disabled:opacity-50">
+                            Cerrar
+                        </button>
+
+                        <div class="flex flex-col-reverse gap-3 sm:flex-row">
+                            {{-- Rechazar: abre el cuadro para escribir el motivo --}}
+                            <button type="button" wire:click="startReject" wire:loading.attr="disabled" wire:target="approveOrder"
+                                    class="h-12 rounded-xl border-2 border-red-300 px-5 font-bold text-red-700 transition hover:bg-red-50 focus:outline-none focus:ring-4 focus:ring-red-200 disabled:cursor-not-allowed disabled:opacity-50">
+                                Rechazar pedido
+                            </button>
+
+                            {{-- Autorizar: wire:loading.attr es solo una defensa contra el doble clic;
+                                 la protección real es el lockForUpdate() del backend. --}}
+                            <button type="button" wire:click.prevent="approveOrder" @disabled($hasShortage)
+                                    wire:loading.attr="disabled" wire:target="approveOrder"
+                                    class="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-vp-morado px-6 font-bold text-white shadow-sm transition hover:bg-vp-oscuro focus:outline-none focus:ring-4 focus:ring-vp-morado/30 disabled:cursor-not-allowed disabled:bg-vp-gris disabled:opacity-60">
+                                <svg wire:loading wire:target="approveOrder" class="h-5 w-5 animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                </svg>
+                                <span wire:loading.remove wire:target="approveOrder">Autorizar salida</span>
+                                <span wire:loading wire:target="approveOrder">Procesando…</span>
+                            </button>
+                        </div>
+                    </div>
+                @endif
             </div>
         </div>
     @endif

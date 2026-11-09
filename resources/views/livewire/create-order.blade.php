@@ -197,7 +197,10 @@
                     <div x-data="{ show: true }" x-show="show" x-init="setTimeout(() => show = false, 8000)" role="status"
                          class="mb-5 flex items-start gap-3 rounded-xl border border-green-200 bg-green-50 p-4 text-green-800">
                         <svg class="mt-0.5 h-5 w-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.8 2.8L16 9.5"/></svg>
-                        <p class="text-sm font-semibold">{{ session('success') }}</p>
+                        <div>
+                            <p class="text-sm font-semibold">{{ session('success') }}</p>
+                            <a href="/mis-pedidos" class="mt-1 inline-block text-sm font-bold underline">Ver mis pedidos</a>
+                        </div>
                     </div>
                 @endif
 

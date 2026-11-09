@@ -24,9 +24,13 @@ Route::post('/logout', function () {
 
 // 1. Solicitante (Enfermería), Supervisor y Administrador
 Route::middleware(['auth', 'role:solicitante,supervisor,admin'])->group(function () {
-    Route::get('/', function () { 
-        return view('welcome'); 
+    Route::get('/', function () {
+        return view('welcome');
     })->name('orders.create');
+
+    Route::get('/mis-pedidos', function () {
+        return view('orders.mine');
+    })->name('orders.mine');
 });
 
 // 2. Supervisor (Almacén) y Administrador
