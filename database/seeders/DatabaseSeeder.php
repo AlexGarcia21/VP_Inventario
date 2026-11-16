@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             FloorSeeder::class,
             ProductSeeder::class,
             ResidentSeeder::class,
+            UserRoleSeeder::class,
         ]);
     }
 
