@@ -97,6 +97,64 @@
         </div>
     </div>
 
+
+
+    {{-- Sección de Historial de Pedidos Procesados --}}
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
+        
+        {{-- Columna Izquierda: Historial con Scroll --}}
+        <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 flex flex-col h-[450px]">
+            <div class="bg-gray-50 px-6 py-4 border-b border-gray-100">
+                <h2 class="text-lg font-bold text-vp-oscuro">Historial de Movimientos</h2>
+            </div>
+            
+            <div class="overflow-y-auto flex-1">
+                <table class="min-w-full divide-y divide-gray-200">
+                    <thead class="bg-white sticky top-0 shadow-sm">
+                        <tr>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Folio / Fecha</th>
+                            <th class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase">Residente</th>
+                            <th class="px-6 py-3 text-center text-xs font-semibold text-gray-500 uppercase">Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-100">
+                        @forelse ($processedOrders as $order)
+                            <tr class="hover:bg-gray-50 transition">
+                                <td class="px-6 py-3 whitespace-nowrap">
+                                    <p class="text-sm font-bold text-gray-800">#{{ str_pad($order->id, 5, '0', STR_PAD_LEFT) }}</p>
+                                    <p class="text-xs text-gray-500">{{ $order->updated_at->format('d/m/Y H:i') }}</p>
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap text-sm text-gray-700">
+                                    {{ $order->resident->name }}
+                                </td>
+                                <td class="px-6 py-3 whitespace-nowrap text-center">
+                                    @if($order->status === 'approved')
+                                        <span class="text-green-700 bg-green-100 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Aprobado</span>
+                                    @else
+                                        <span class="text-red-700 bg-red-100 text-[10px] font-bold px-2 py-1 rounded-full uppercase">Rechazado</span>
+                                    @endif
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="3" class="px-6 py-8 text-center text-gray-400 text-sm">No hay historial procesado.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+
+        
+        <div>
+            @livewire('inventory-reports')
+        </div>
+
+
+
+
+
     @livewire('order-detail-modal')
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>

@@ -20,6 +20,15 @@ class WarehouseController extends Controller
         $lowStockProducts = Product::whereColumn('current_stock', '<=', 'min_stock')
             ->get();
 
-        return view('warehouse.index', compact('pendingOrders', 'lowStockProducts'));
+        
+        
+        //Historial de pedidos procesados (Aprobados y Rechazados)
+        $processedOrders = Order::with(['resident', 'items.product'])
+         ->whereIn('status', ['approved', 'rejected'])
+         ->latest()
+         ->take(50) // Limitamos a los últimos 50 para no saturar la memoria
+         ->get();
+
+        return view('warehouse.index', compact('pendingOrders', 'lowStockProducts', 'processedOrders'));
     }
 }
